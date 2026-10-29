@@ -60,9 +60,11 @@ button{font:inherit;cursor:pointer;border:0;color:inherit}
 .dp{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px 0 12px}.big-av{width:88px;height:88px;font-size:34px}
 .uni{display:flex;flex-direction:column;gap:16px}.uni .tabs{margin:0}.uni .tabs button{font-size:14px;padding:9px 4px}.uni .big{margin:4px 0 8px}
 .lb.me{background:var(--accent2);margin:0 -16px;padding:12px 16px;border-radius:12px;border-color:transparent}.empty{display:flex;flex-direction:column;gap:12px;text-align:center;padding:8px 0}
+input.tg{-webkit-appearance:none;appearance:none;width:51px;height:31px;border-radius:16px;background:color-mix(in srgb,var(--muted) 40%,transparent);position:relative;cursor:pointer;transition:background .2s;flex:none;margin:0}input.tg:before{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.25);transition:transform .2s}input.tg:checked{background:var(--accent)}input.tg:checked:before{transform:translateX(20px)}
+.scrim.pop{align-items:center;justify-content:center;padding:24px;background:rgba(20,18,16,.3);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}.modal{background:var(--card);border-radius:20px;padding:24px 20px 12px;width:100%;max-width:340px;box-shadow:0 20px 50px rgba(0,0,0,.3);animation:pp .18s ease-out}.modal .input{background:var(--bg)}@keyframes pp{from{transform:scale(.94);opacity:0}}
 .navbtn{background:none;color:var(--text);font-size:16px;font-weight:500;padding:10px 12px;border-radius:10px;min-height:44px}.navbtn:active{background:var(--line)}
-
-
+ 
+ 
 body{font-family:"Avenir Next","Avenir","Nunito Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:17px;-webkit-font-smoothing:antialiased}
 button,input{font-family:inherit}
 b,strong{font-weight:600}
@@ -81,9 +83,9 @@ h2{font-size:20px;font-weight:600}
 .stats{margin-top:16px;padding-top:16px}.stats b{font-size:20px;font-weight:600}
 .chip{padding:10px 16px;font-weight:500}.chip.on{background:var(--btn);border-color:var(--btn);color:var(--btnText)}
 .plus{width:40px;height:40px;background:var(--btn);color:var(--btnText);font-weight:400}
-
-
-
+ 
+ 
+ 
 .rank{font-weight:600}
 .dots{margin:24px 0}
 .tabs button{font-weight:500}.tabs button.on{font-weight:600}
@@ -98,7 +100,7 @@ var POOL=[{name:"Taylor",d:[95,100,104]},{name:"Morgan",d:[270,255,248]},{name:"
 var S={screen:"onb",slide:0,tab:"up",faceId:false,user:null,group:"all",sheet:null,toast:null,fid:null,
 me:{id:"me",name:"You",d:[240,228,235],pv:[262,241,250]},
 friends:[{id:1,name:"Sam",d:[125,132,138]},{id:2,name:"Priya",d:[280,268,260]},{id:3,name:"Jordan",d:[110,118,122]},{id:4,name:"Alex",d:[190,182,176]}],
-groups:[],nextId:10,photo:null,fresh:false,period:0};
+groups:[],nextId:10,photo:null,fresh:false,period:0,dark:!!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)};
 var SLIDES=[["📱","See your real screen time","Track how much time you spend on social media each day, in one simple number."],
 ["👯","Compare with friends","Add friends and see who is spending the least time scrolling. A little friendly pressure goes a long way."],
 ["🏆","Build better habits together","Create groups for roommates, teams or your close circle and cut down together."]];
@@ -127,11 +129,12 @@ function share(){var link=curLink();
   toast("Link copied")}
 function simFriend(){var p=POOL.shift();if(!p){toast("No more demo friends");return}
   var f={id:S.nextId++,name:p.name,d:p.d},g=curGroup();S.friends.push(f);if(g)g.ids.push(f.id);S.sheet=null;toast(p.name+" joined"+(g?" "+g.name:""));}
-function newGroup(){go("newgroup")}
+function newGroup(){S.sheet="group";render()}
 function curGroup(){return S.groups.filter(function(x){return x.id===S.group})[0]||null}
 function curLink(){var g=curGroup();return "screentime.app/join/"+(g?g.code:"x7k2")}
 function tot(p){return Math.round(p.d[S.period]*[1,7,30][S.period])}
 function setPeriod(i){S.period=i;render()}
+function setDark(on){S.dark=on;document.documentElement.setAttribute("data-theme",on?"dark":"light")}
 function createGroup(){var n=document.getElementById("gn").value.trim();
   if(!n){toast("Name your group");return}
   var code=Math.random().toString(36).slice(2,6);
@@ -144,9 +147,10 @@ function drawer(){return '<div class="scrim side" onclick="if(event.target===thi
   '<div class="dp"><div class="av big-av" style="'+avS("var(--accent)")+'">'+(S.photo?"":esc((S.user||"M")[0].toUpperCase()))+'</div><h2>'+esc(S.user||"")+'</h2></div>'+
   '<input type="file" id="ph" accept="image/*" style="display:none" onchange="setPhoto(this)">'+
   '<button class="btn sec" onclick="document.getElementById(\'ph\').click()">Change profile photo</button>'+
-  '<div class="sw"><span>Face ID sign-in</span><input type="checkbox" '+(S.faceId?"checked":"")+' style="width:22px;height:22px;accent-color:var(--accent)" onchange="S.faceId=this.checked;render()"></div>'+
+  '<div class="sw"><span>Face ID sign-in</span><input type="checkbox" '+(S.faceId?"checked":"")+' class="tg" onchange="S.faceId=this.checked"></div>'+
+  '<div class="sw"><span>Dark mode</span><input type="checkbox" '+(S.dark?"checked":"")+' class="tg" onchange="setDark(this.checked)"></div>'+
   '<button class="btn sec" style="margin-top:auto;color:var(--danger)" onclick="logout()">Log out</button></aside></div>'}
-
+ 
 function onb(){var s=SLIDES[S.slide];
   return '<div class="screen"><div class="hero"><div class="emoji">'+s[0]+'</div><h1>'+s[1]+'</h1><p>'+s[2]+'</p></div>'+
   '<div class="dots">'+[0,1,2].map(function(i){return'<i class="'+(i===S.slide?"on":"")+'"></i>'}).join("")+'</div>'+
@@ -194,6 +198,7 @@ function sheet(){var h="";
     
   if(S.sheet==="faceprompt")h='<h2>Enable Face ID?</h2><p style="margin:6px 0 16px">Sign in faster next time without typing your password.</p><button class="btn" onclick="enableFace(true)">Enable Face ID</button><button class="btn ghost" onclick="enableFace(false)">Not now</button>';
   if(S.sheet==="menu")return drawer();
+  if(S.sheet==="group")return groupPop();
   return h?'<div class="scrim" onclick="if(event.target===this){S.sheet=null;render()}"><div class="sheet">'+h+'</div></div>':""}
 function fidOverlay(){if(!S.fid)return"";
   return '<div class="fid"><div class="fidbox"><div style="font-size:56px">'+(S.fid==="ok"?"✅":"🙂")+'</div><p style="margin-top:10px;color:var(--text)">'+(S.fid==="ok"?"Face ID successful":"Looking for your face…")+'</p></div></div>'}
@@ -202,15 +207,16 @@ function navbar(){
   ''+
   ''+
   '</div>'}
-function groupScr(){return '<div class="screen"><button class="navbtn" style="align-self:flex-start;margin-left:-12px" onclick="go(\'dash\')">‹ Back</button>'+
-  '<div style="margin:16px 0 24px"><h1>Name your group</h1><p style="margin-top:8px">Roommates, study buddies, the group chat. You’ll invite friends with a link next.</p></div>'+
+function groupPop(){return '<div class="scrim pop" onclick="if(event.target===this){S.sheet=null;render()}"><div class="modal">'+
+  '<h2>Name your group</h2><p style="margin:8px 0 16px">Roommates, study buddies, the group chat. You’ll invite friends with a link next.</p>'+
   '<input class="input" id="gn" placeholder="Group name" maxlength="30" onkeydown="if(event.key===\'Enter\')createGroup()">'+
-  '<button class="btn" onclick="createGroup()">Create</button></div>'}
+  '<button class="btn" onclick="createGroup()">Create</button><button class="btn ghost" onclick="S.sheet=null;render()">Cancel</button></div></div>'}
 function render(){var a=document.getElementById("app"),sc=a.querySelector(".screen"),y=sc?sc.scrollTop:0;
-  var h=S.screen==="onb"?onb():S.screen==="auth"?authScr():S.screen==="newgroup"?groupScr():dash();
+  var h=S.screen==="onb"?onb():S.screen==="auth"?authScr():dash();
   a.innerHTML=h+(S.screen==="dash"?navbar():"")+sheet()+fidOverlay()+(S.toast?'<div class="toast">'+esc(S.toast)+'</div>':"");
-  var n=a.querySelector(".screen");if(n)n.scrollTop=y;var gi=document.getElementById("gn");if(gi&&S.screen==="newgroup")gi.focus()}
+  var n=a.querySelector(".screen");if(n)n.scrollTop=y;var gi=document.getElementById("gn");if(gi)gi.focus()}
 render();
 </script>
 </body>
 </html>
+ 
